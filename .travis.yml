@@ -1,10 +1,6 @@
 language: c
 dist: trusty
 script:
-    - echo compile library
     - gcc tensor.c -c -o tensor.o -std=c99
-    - echo compile done
-    - echo testing
     - for i in test/*.c;do echo $i;gcc tensor.o $i;./a.out;done;
-    - echo test done
 
