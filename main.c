@@ -17,5 +17,6 @@ int main(){
     T2->data[1]=4;
     tensor* ANS=tensor_times(N,1);
     printf("%lf\n",ANS->data[0]);
+    network_free(N);
     return 0;
 }

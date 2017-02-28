@@ -8,6 +8,7 @@ tensor* tensor_malloc(
     T=(tensor*)malloc(sizeof(tensor));
     T->dimensions=dimensions;
     T->dimension=(int*)malloc(sizeof(int)*dimensions);
+    T->bond=(int*)malloc(sizeof(int)*dimensions);
     int m = 1;
     for(int i=0;i<dimensions;i++){
         T->bond[i] = bond[i];
@@ -42,7 +43,7 @@ network* network_malloc(){
 
 int network_free(network* N){
     free(N->bond_pool);
-    for(int i = 0;i<=N->current_tensor;i++)
+    for(int i = 0;i<N->current_tensor;i++)
         tensor_free(N->tensor_pool[i]);
     free(N->tensor_pool);
     free(N);
@@ -91,24 +92,72 @@ tensor* tensor_times(
         int abond){
     tensor* T1=N->bond_pool[abond][0];
     tensor* T2=N->bond_pool[abond][1];
-    if(T1==T2)
+    if(T1==T2){
         return 0;
+    }
     int dimensions  = T1->dimensions+T2->dimensions-2;
     int* dimension = (int*)malloc(sizeof(int)*dimensions);
     int* bond = (int*)malloc(sizeof(int)*dimensions);
     int p=0;
-    tensor* temp=T1;
-    for(int i = 0;i<dimensions;i++){
-        if(temp->bond[p]!=abond){
-            dimension[i]=temp->dimension[p];
-            bond[i]=temp->bond[p];
-        }
+    int i=0;
+    int T1f=1;
+    int T1l=1;
+    int T2f=1;
+    int T2l=1;
+    int adim=1;
+    while(T1->bond[p]!=abond){
+        T1f*=(dimension[i]=T1->dimension[p]);
+        bond[i]=T1->bond[p];
+        i++;
         p++;
-        if(p==temp->dimensions){
-            p=0;
-            temp=T2;
-        }
+    }
+    p++;
+    while(p!=T1->dimensions){
+        T1l*=(dimension[i]=T1->dimension[p]);
+        bond[i]=T1->bond[p];
+        i++;
+        p++;
+    }
+    p=0;
+    while(T2->bond[p]!=abond){
+        T2f*=(dimension[i]=T2->dimension[p]);
+        bond[i]=T2->bond[p];
+        i++;
+        p++;
+    }
+    adim=T2->dimension[p];
+    p++;
+    while(p!=T2->dimensions){
+        T2l*=(dimension[i]=T2->dimension[p]);
+        bond[i]=T2->bond[p];
+        i++;
+        p++;
     }
     tensor* ANS=tensor_malloc(dimensions,dimension,bond);
+    for(int i=0;i<T1f;i++)
+        for(int j=0;j<T1l;i++)
+            for(int k=0;k<T2f;i++)
+                for(int l=0;l<T2l;i++){
+                    BASETYPE* temp=&ANS->data[((i*T1l+j)*T2f+k)*T2l+l];
+                    *temp = 0;
+                    for(int m=0;m<adim;m++)
+                        *temp += T1->data[(i*adim+m)*T1l+j]*T2->data[(k*adim+m)*T2l+l];
+                }
+    for(int i=0;i<T1->dimensions;i++){
+        if(N->bond_pool[T1->bond[i]][0]==T1)
+            N->bond_pool[T1->bond[i]][0]=ANS;
+        else
+            N->bond_pool[T1->bond[i]][1]=ANS;
+    }
+    for(int i=0;i<T2->dimensions;i++){
+        if(N->bond_pool[T2->bond[i]][0]==T2)
+            N->bond_pool[T2->bond[i]][0]=ANS;
+        else
+            N->bond_pool[T2->bond[i]][1]=ANS;
+    }
+    N->bond_pool[abond][0]=NOTENSOR;
+    N->bond_pool[abond][1]=NOTENSOR;
+    free(dimension);
+    free(bond);
     return ANS;
 }
