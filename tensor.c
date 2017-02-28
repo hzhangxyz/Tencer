@@ -88,9 +88,27 @@ tensor* network_append_tensor(network* N,tensor* T){
 
 tensor* tensor_times(
         network *N,
-        int bond){
-    tensor* T1=N->bond_pool[bond][0];
-    tensor* T2=N->bond_pool[bond][1];
-
-
+        int abond){
+    tensor* T1=N->bond_pool[abond][0];
+    tensor* T2=N->bond_pool[abond][1];
+    if(T1==T2)
+        return 0;
+    int dimensions  = T1->dimensions+T2->dimensions-2;
+    int* dimension = (int*)malloc(sizeof(int)*dimensions);
+    int* bond = (int*)malloc(sizeof(int)*dimensions);
+    int p=0;
+    tensor* temp=T1;
+    for(int i = 0;i<dimensions;i++){
+        if(temp->bond[p]!=abond){
+            dimension[i]=temp->dimension[p];
+            bond[i]=temp->bond[p];
+        }
+        p++;
+        if(p==temp->dimensions){
+            p=0;
+            temp=T2;
+        }
+    }
+    tensor* ANS=tensor_malloc(dimensions,dimension,bond);
+    return ANS;
 }
