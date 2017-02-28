@@ -54,7 +54,7 @@ int network_free(network* N){
     return 0;
 }
 
-int check_bond_and_tensor(network* N){
+int check_pool(network* N){
     if(N->max_bond<2*N->current_bond){
         N->max_bond*=2;
         N->bond_pool = (tensor*(*)[2])realloc(
@@ -93,7 +93,7 @@ tensor* network_append_tensor(network* N,tensor* T){
             N->current_bond=T->bond[i];
     }
     //update bond pool
-    check_bond_and_tensor(N);
+    check_pool(N);
     //whatif pool is full
     return T;
 }
