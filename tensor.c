@@ -21,6 +21,8 @@ tensor* tensor_malloc(
 }
 
 int tensor_free(tensor *T){
+    if(!T)
+        return 0;
     free(T->dimension);
     free(T->bond);
     free(T->data);
@@ -47,6 +49,8 @@ network* network_malloc(){
 }
 
 int network_free(network* N){
+    if(!N)
+        return 0;
     for(int i = 0;i<N->current_tensor;i++)
         tensor_free(N->tensor_pool[i]);
     free(N->tensor_pool);
@@ -145,7 +149,21 @@ tensor* tensor_times(
                         *temp += T->data[(((i*adim+l)*Tm+j)*adim+l)*Tl+k];
                     }
                 }
-
+        for(int i=0;i<T->dimensions;i++){
+            if(N->bond_pool[T->bond[i]][0]==T)
+                N->bond_pool[T->bond[i]][0]=ANS;
+            if(N->bond_pool[T->bond[i]][1]==T)
+                N->bond_pool[T->bond[i]][1]=ANS;
+        }
+        for(int i=0;i<N->current_tensor;i++){
+            if(N->tensor_pool[i]==T)
+                N->tensor_pool[i]=NOTENSOR;
+        }
+        N->tensor_pool[N->current_tensor++]=ANS;
+        check_pool(N);
+        free(dimension);
+        free(bond);
+        tensor_free(T);
         return ANS;
     }
     //whatif the same
@@ -202,18 +220,27 @@ tensor* tensor_times(
     for(int i=0;i<T1->dimensions;i++){
         if(N->bond_pool[T1->bond[i]][0]==T1)
             N->bond_pool[T1->bond[i]][0]=ANS;
-        else
+        if(N->bond_pool[T1->bond[i]][1]==T1)
             N->bond_pool[T1->bond[i]][1]=ANS;
     }
     for(int i=0;i<T2->dimensions;i++){
         if(N->bond_pool[T2->bond[i]][0]==T2)
             N->bond_pool[T2->bond[i]][0]=ANS;
-        else
+        if(N->bond_pool[T2->bond[i]][1]==T2)
             N->bond_pool[T2->bond[i]][1]=ANS;
     }
     N->bond_pool[abond][0]=NOTENSOR;
     N->bond_pool[abond][1]=NOTENSOR;
     //update bond
+    for(int i=0;i<N->current_tensor;i++){
+        if(N->tensor_pool[i]==T1)
+            N->tensor_pool[i]=NOTENSOR;
+        if(N->tensor_pool[i]==T2)
+            N->tensor_pool[i]=NOTENSOR;
+    }
+    N->tensor_pool[N->current_tensor++]=ANS;
+    check_pool(N);
+    //update tensor
     tensor_free(T1);
     tensor_free(T2);
     free(dimension);
