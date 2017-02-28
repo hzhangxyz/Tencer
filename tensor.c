@@ -9,12 +9,14 @@ tensor* tensor_malloc(
     T->dimensions=dimensions;
     T->dimension=(int*)malloc(sizeof(int)*dimensions);
     T->bond=(int*)malloc(sizeof(int)*dimensions);
+    //malloc something
     int m = 1;
     for(int i=0;i<dimensions;i++){
         T->bond[i] = bond[i];
         m *= (T->dimension[i]=dimension[i]);
     }
     T->data=(BASETYPE *)malloc(sizeof(BASETYPE)*m);
+    //calculate the storage of data and malloc
     return T;
 }
 
@@ -34,10 +36,12 @@ network* network_malloc(){
     N->max_tensor=INITPOOL;
     N->current_tensor=0;
     N->tensor_pool=(tensor* *) malloc(sizeof(tensor*)*INITPOOL);
+    //malloc everything
     for(int i=0;i<INITPOOL;i++){
         N->bond_pool[i][0]=N->bond_pool[i][1]=NOBOND;
         N->tensor_pool[i]=NOTENSOR;
     }
+    //initialize pool
     return N;
 }
 
@@ -56,25 +60,30 @@ int check_bond_and_tensor(network* N){
         N->bond_pool = (tensor*(*)[2])realloc(
                 N->bond_pool,
                 N->max_bond);
+        //extend if half full
         for(int i=N->max_bond/2;i<N->max_bond;i++){
             N->bond_pool[i][0]=NOBOND;
             N->bond_pool[i][1]=NOBOND;
         }
+        //initialize new pool
     }
     if(N->max_tensor<2*N->current_tensor){
         N->max_tensor*=2;
         N->tensor_pool = (tensor **)realloc(
                 N->tensor_pool,
                 N->max_tensor);
+        //extend if half full
         for(int i=N->max_tensor/2;i<N->max_tensor;i++){
             N->tensor_pool[i]=NOTENSOR;
         }
+        //initialize new pool
     }
     return 0;
 }
 
 tensor* network_append_tensor(network* N,tensor* T){
     N->tensor_pool[N->current_tensor++]=T;
+    //update tensor pool
     for(int i = 0;i<T->dimensions;i++){
         if(N->bond_pool[T->bond[i]][0]==NOBOND)
             N->bond_pool[T->bond[i]][0]=T;
@@ -83,7 +92,9 @@ tensor* network_append_tensor(network* N,tensor* T){
         if(N->current_bond<T->bond[i])
             N->current_bond=T->bond[i];
     }
+    //update bond pool
     check_bond_and_tensor(N);
+    //whatif pool is full
     return T;
 }
 
@@ -92,6 +103,7 @@ tensor* tensor_times(
         int abond){
     tensor* T1=N->bond_pool[abond][0];
     tensor* T2=N->bond_pool[abond][1];
+    //tensor
     if(T1==T2){
         tensor *T=T1;
         int dimensions = T->dimensions-2;
