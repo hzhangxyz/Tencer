@@ -22,6 +22,7 @@ tensor* tensor_malloc(
 
 int tensor_free(tensor *T){
     free(T->dimension);
+    free(T->bond);
     free(T->data);
     free(T);
     return 0;
