@@ -8,12 +8,12 @@ int main(){
     tensor* T=network_append_tensor(
             N,
             tensor_malloc(2,T_d,T_b));
-    T->data[0]=1;
-    T->data[1]=2;
+    T->data[0]=1 * I;
+    T->data[1]=2 * I;
     T->data[2]=100;
     T->data[3]=200;
     tensor* ANS=tensor_times(N,0);
-    printf("%lf\n",ANS->data[0]);
+    printf("%.2f + %.2fi\n",creal(ANS->data[0]),cimag(ANS->data[0]));
     network_free(N);
     return 0;
 }

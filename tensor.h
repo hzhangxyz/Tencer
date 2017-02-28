@@ -1,6 +1,7 @@
 #include <stdlib.h>
+#include <complex.h>
 
-#define BASETYPE double
+#define BASETYPE double complex
 #define INITPOOL 256
 #define NOBOND 0
 #define NOTENSOR 0
