@@ -59,7 +59,7 @@ int network_free(network* N){
     return 0;
 }
 
-int check_pool(network* N){
+network* check_pool(network* N){
     if(N->max_bond<2*N->current_bond){
         N->max_bond*=2;
         N->bond_pool = (tensor*(*)[2])realloc(
@@ -83,7 +83,7 @@ int check_pool(network* N){
         }
         //initialize new pool
     }
-    return 0;
+    return N;
 }
 
 tensor* network_append_tensor(network* N,tensor* T){
@@ -247,4 +247,35 @@ tensor* tensor_times(
     free(bond);
     //free others
     return ANS;
+}
+
+network* tensor_import(network* N,char* file_name){
+    FILE* file=fopen(file_name,"r");
+    int tensor_number;
+    fscanf(file,"%d",&tensor_number);
+    for(int i=0;i<tensor_number;i++){
+        int dimensions;
+        fscanf(file,"%d",&dimensions);
+        int *dimension=(int *)malloc(sizeof(int)*dimensions);
+        int *bond=(int *)malloc(sizeof(int)*dimensions);
+        int storage = 1;
+        for(int j=0;j<dimensions;j++){
+            fscanf(file,"%d",&dimension[j]);
+            storage *=dimension[j];
+        }
+        for(int j=0;j<dimensions;j++){
+            fscanf(file,"%d",&bond[j]);
+        }
+        tensor* T=network_append_tensor(N,
+                tensor_malloc(
+                    dimensions,
+                    dimension,
+                    bond));
+        for(int j=0;j<storage;j++){
+            READBASE(file,&T->data[j]);
+        }
+        free(dimension);
+        free(bond);
+    }
+    return N;
 }

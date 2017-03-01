@@ -1,10 +1,27 @@
 #include <stdlib.h>
 #include <complex.h>
+#include <stdio.h>
 
 #define BASETYPE double complex
 #define INITPOOL 256
 #define NOBOND 0
 #define NOTENSOR 0
+#define READBASE(F,D)                    \
+{                                        \
+    double t;                            \
+    char s;                              \
+    fscanf((F),"%lf",&t);                \
+    *(D) = t;                            \
+    if((s=fgetc(F))!=' '){               \
+        if((s!='+')&&(s!='-'))           \
+            *(D) *= I;                   \
+        else{                            \
+            fscanf((F),"%lf",&t);        \
+            *(D) += (s=='+'?1:-1)*t*I;   \
+            fgetc(F);                    \
+        }                                \
+    }                                    \
+}
 
 typedef struct tensor{
     int dimensions;
@@ -33,7 +50,7 @@ network* network_malloc();
 
 int network_free(network*);
 
-int check_bond_and_tensor(network*);
+network* check_pool(network*);
 
 tensor* network_append_tensor(
         network*,
@@ -42,4 +59,8 @@ tensor* network_append_tensor(
 tensor* tensor_times(
         network* N,
         int bond);
+
+network* tensor_import(
+        network*,
+        char *);
 
